@@ -1,0 +1,40 @@
+name: Build Windows ARM64
+
+on:
+  workflow_dispatch: # 允许手动触发
+
+jobs:
+  build-windows-arm64:
+    runs-on: windows-latest # 使用 GitHub 提供的 Windows 服务器
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18' # cc-switch 通常兼容 Node 18+
+
+      - name: Install pnpm
+        run: npm install -g pnpm
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-pc-windows-msvc # 关键：添加 ARM64 目标架构
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Build for Windows ARM64
+        run: |
+          $env:CARGO_BUILD_TARGET="aarch64-pc-windows-msvc"
+          pnpm build --target aarch64-pc-windows-msvc
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: cc-switch-windows-arm64
+          path: dist/ # 根据项目结构，构建产物通常在 dist 或 src-tauri/target 下
+          retention-days: 5
