@@ -1,0 +1,39 @@
+name: Build Windows ARM64 Only
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build-windows-arm64:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install pnpm
+        run: npm install -g pnpm
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Add ARM64 Windows target
+        run: rustup target add aarch64-pc-windows-msvc
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Build for Windows ARM64
+        run: pnpm tauri build --target aarch64-pc-windows-msvc
+        env:
+          TAURI_SIGNING_PRIVATE_KEY: ""
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ""
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: cc-switch-windows-arm64
+          path: src-tauri/target/aarch64-pc-windows-msvc/release/bundle/
